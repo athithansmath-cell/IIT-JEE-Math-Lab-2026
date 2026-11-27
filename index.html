@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IIT-JEE Mathematics — 8-Task Interactive Mastery Lab</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+  <style>
+    :root { --primary: #0f172a; --accent: #ea580c; --bg: #fff7ed; --card: #ffffff; --text: #1e293b; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 12px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+    input, textarea { -webkit-user-select: text; -moz-user-select: text; user-select: text; }
+    .container { max-width: 960px; margin: 0 auto; }
+    .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .subcard { background: #f8fafc; border-left: 4px solid var(--accent); border-radius: 8px; padding: 14px; margin: 14px 0; }
+    .sdg-box { background: #ecfdf5; border-left: 4px solid #059669; border-radius: 8px; padding: 12px; margin: 10px 0; font-size: 13.5px; }
+    h1, h2, h3 { color: var(--primary); margin-top: 0; }
+    label { font-weight: 600; display: block; margin: 8px 0 4px; font-size: 13.5px; }
+    input[type="text"], input[type="number"], input[type="date"] {
+      width: 100%; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; box-sizing: border-box;
+    }
+    .blank-box {
+      display: inline-block !important;
+      width: 105px !important;
+      padding: 4px 6px !important;
+      margin: 2px 3px;
+      border: 2px solid var(--accent) !important;
+      border-radius: 6px !important;
+      background: #ffffff;
+      font-weight: 700;
+      color: #9a3412;
+      text-align: center;
+    }
+    .obs-input { width: 100%; padding: 8px 10px; border: 1px solid #94a3b8; border-radius: 8px; font-size: 14px; background: #fff; box-sizing: border-box; }
+    .derivation-line { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; margin: 8px 0; line-height: 2.1; font-size: 14.5px; }
+    input[type="range"] { width: 100%; }
+    button { background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+    button:hover { background: #c2410c; }
+    .step-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 8px; }
+    .readout { background: #ffedd5; border: 1px solid #fed7aa; padding: 8px 10px; border-radius: 6px; font-family: monospace; font-size: 12.5px; margin-top: 8px; color: #9a3412; }
+    .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; margin-bottom: 14px; }
+    .tab-btn { background: #e2e8f0; color: #1e293b; margin-top: 0; padding: 8px 6px; font-size: 12.5px; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .plot-box { width: 100%; height: 300px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 8px; }
+    .status-msg { margin-top: 10px; font-weight: 600; }
+    .hidden { display: none; }
+    .hint { font-size: 13px; color: #475569; margin-top: 4px; }
+  </style>
+</head>
+<body oncopy="return false;" oncut="return false;" onpaste="return false;" oncontextmenu="return false;">
+<div class="container">
+  <div class="card">
+    <h1>IIT-JEE Mathematics — 8-Task Interactive Mastery Lab</h1>
+    <p>Enter your <strong>Roll / Register Number</strong> and <strong>Date of Birth</strong>, then sign in with Google. Your unique parameters $(a, b)$ are generated from your Roll No + DOB and hidden inside your Argand Plane plot in Task 1.</p>
+
+    <div id="loginBox">
+      <div class="step-grid">
+        <div>
+          <label for="regInput">Roll / Register Number (ending in 3 digits)</label>
+          <input type="text" id="regInput" placeholder="e.g., JEE2026078" autocomplete="off" />
+        </div>
+        <div>
+          <label for="dobInput">Date of Birth</label>
+          <input type="date" id="dobInput" />
+        </div>
+      </div>
+      <br />
+      <div id="g_id_onload"
+           data-client_id="771618195563-31b95u9tom7vgf70ba9lea6svhno1h6m.apps.googleusercontent.com"
+           data-context="signin"
+           data-ux_mode="popup"
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large"></div>
+      <p id="loginError" class="status-msg" style="color:#dc2626;"></p>
+    </div>
+
+    <div id="studentHeader" class="hidden">
+      <p><strong>Aspirant:</strong> <span id="dispName"></span> | <strong>Roll No:</strong> <span id="dispReg"></span> | <strong>DOB:</strong> <span id="dispDob"></span></p>
+      <p class="hint"><em>Anti-Copy Active: Discover $(a, b)$ from the Task 1 Argand Plane plot and apply them across all 8 JEE modules.</em></p>
+    </div>
+  </div>
+
+  <div id="workspace" class="hidden">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTask(1)">J1: Complex</button>
+      <button class="tab-btn" onclick="showTask(2)">J2: Quadratics</button>
+      <button class="tab-btn" onclick="showTask(3)">J3: Trig & Inv</button>
+      <button class="tab-btn" onclick="showTask(4)">J4: Conics</button>
+      <button class="tab-btn" onclick="showTask(5)">J5: Diff Calc</button>
+      <button class="tab-btn" onclick="showTask(6)">J6: Int & ODE</button>
+      <button class="tab-btn" onclick="showTask(7)">J7: Vectors 3D</button>
+      <button class="tab-btn" onclick="showTask(8)">J8: Prob & Mat</button>
+    </div>
+
+    <!-- ==================== J1: COMPLEX NUMBERS ==================== -->
+    <div id="task1" class="card">
+      <h2>J1: Complex Numbers & Argand Rotation (JEE Main & Advanced)</h2>
+      <div class="sdg-box">
+        <strong>Learning, Industry & SDG Relevance (SDG 9):</strong> Multiplying by $e^{i\theta}$ rotates vectors without changing modulus—the exact principle behind AC power phasors, 5G QAM signal modulation, and quantum gates.
+      </div>
+      <div class="subcard" style="border-left-color:#16a34a;">
+        <h3>Step 0: Read Your Hidden $(a, b)$ From Complex Number $z_1 = a + ib$</h3>
+        <div class="step-grid">
+          <div><label>Real part $\text{Re}(z_1) = a$:</label><input type="number" id="seed_a" oninput="verifySeed()" /></div>
+          <div><label>Imaginary part $\text{Im}(z_1) = b$:</label><input type="number" id="seed_b" oninput="verifySeed()" /></div>
+        </div>
+        <div id="seedMsg" class="status-msg" style="color:#d97706;">🔒 Hover on the blue vector tip $z_1 = a + ib$ in the Argand Plane below.</div>
+      </div>
+      <div class="subcard">
+        <h3>Visualization J1: Rotation $z_2 = z_1 e^{i\theta}$ on the Argand Plane</h3>
+        <label>Rotation Angle $\theta$: <span id="j1_th_lbl">1.57</span> rad</label>
+        <input type="range" id="j1_th" min="0" max="6.28" step="0.02" value="1.57" oninput="trackMove(1); drawJ1();" />
+        <div id="readoutJ1" class="readout"></div>
+        <div id="plotJ1" class="plot-box"></div>
+        <div class="step-grid">
+          <div><label>1. Squared Modulus $|z_1|^2 = a^2 + b^2$:</label><input type="number" id="j1_mod2" /></div>
+          <div><label>2. What happens to $|z_2|$ as $\theta$ changes?</label><input type="text" class="obs-input" id="j1_obs" placeholder="Type your observation..." /></div>
+        </div>
+      </div>
+      <div class="subcard" style="border-left-color:#7c3aed;">
+        <h3>JEE Guided Derivation Worksheet (J1)</h3>
+        <div class="derivation-line">
+          Rotating $z_1 = a + ib$ counter-clockwise by $90^\circ$ ($i \cdot z_1$) gives $z_2 = -b + ia$, so $\text{Re}(z_2) = -b =$ <input type="number" class="blank-box" id="j1_b1" /> and $z_1 \cdot \overline{z_1} = a^2 + b^2 =$ <input type="number" class="blank-box" id="j1_b2" />.
+        </div>
+      </div>
+      <button onclick="submitTask(1)">Verify & Submit J1</button>
+      <div id="statusT1" class="status-msg"></div>
+    </div>
+
+    <!-- ==================== J2: QUADRATICS & AM-GM ==================== -->
+    <div id="task2" class="card hidden">
+      <h2>J2: Quadratic Roots, AM–GM Inequality & Sequences</h2>
+      <div class="sdg-box">
+        <strong>Learning, Industry & SDG Relevance (SDG 8):</strong> Finding exact lower bounds via AM–GM and quadratic discriminants underpins cost-minimization models in logistics and financial portfolio optimization.
+      </div>
+      <div class="subcard">
+        <h3>Visualization J2: AM–GM Minimum Curve $f(x) = ax + \frac{b}{x}$ ($x > 0$)</h3>
+        <label>Probe $x$: <span id="j2_x_lbl">1.0</span></label>
+        <input type="range" id="j2_x" min="0.2" max="4.0" step="0.05" value="1.0" oninput="trackMove(2); drawJ2();" />
+        <div id="readoutJ2" class="readout"></div>
+        <div id="plotJ2" class="plot-box"></div>
+        <div class="step-grid">
+          <div><label>1. Minimum value $2\sqrt{ab}$ (2 decimals):</label><input type="number" step="any" id="j2_min" /></div>
+          <div><label>2. At what $x = \sqrt{b/a}$ does the minimum occur?</label><input type="number" step="any" id="j2_xmin" /></div>
+        </div>
+      </div>
+      <div class="subcard" style="border-left-color:#7c3aed;">
+        <h3>JEE Guided Derivation Worksheet (J2)</h3>
+        <div class="derivation-line">
+          For quadratic $x^2 - (a+b)x + ab = 0$, sum of roots $\alpha+\beta =$ <input type="number" class="blank-box" id="j2_b1" />, product $\alpha\beta =$ <input type="number" class="blank-box" id="j2_b2" />, and $(\alpha - \beta)^2 = (a-b)^2 =$ <input type="number" class="blank-box" id="j2_b3" />.
+        </div>
+      </div>
+      <button onclick="submitTask(2)">Verify & Submit J2</button>
+      <div id="statusT2" class="status-msg"></div>
+    </div>
+
+    <!-- ==================== J3: TRIGONOMETRY & INVERSE TRIG ==================== -->
+    <div id="task3" class="card hidden">
+      <h2>J3: Trigonometric Superposition & Inverse Functions</h2>
+      <div class="sdg-box">
+        <strong>Learning, Industry & SDG Relevance (SDG 7 & SDG 11):</strong> Combining orthogonal sinusoids $a\cos x + b\sin x = R\cos(x - \alpha)$ is used in solar inverter grid synchronization and earthquake harmonic analysis.
+      </div>
+      <div class="subcard">
+        <h3>Visualization J3: Resultant Wave $y(x) = a\cos x + b\sin x$</h3>
+        <div id="readoutJ3" class="readout"></div>
+        <div id="plotJ3" class="plot-box" onclick="trackMove(3)"></div>
+        <div class="step-grid">
+          <div><label>1. Maximum wave height $R = \sqrt{a^2+b^2}$ (2 decimals):</label><input type="number" step="any" id="j3_amp" /></div>
+          <div><label>2. Minimum wave value $-R$:</label><input type="number" step="any" id="j3_min" /></div>
+        </div>
+      </div>
+      <div class="subcard" style="border-left-color:#7c3aed;">
+        <h3>JEE Guided Derivation Worksheet (J3)</h3>
+        <div class="derivation-line">
+          Using $\tan^{-1}(x) + \tan^{-1}(1/x) = \frac{\pi}{2}$ for $x > 0$, $\tan^{-1}(a/b) + \tan^{-1}(b/a)$ in degrees equals <input type="number" class="blank-box" id="j3_b1" />$^\circ$. Also $\sin^2\theta + \cos^2\theta =$ <input type="number" class="blank-box" id="j3_b2" />.
+        </div>
+      </div>
+      <button onclick="submitTask(3)">Verify & Submit J3</button>
+      <div id="statusT3" class="status-msg"></div>
+    </div>
+
+    <!-- ==================== J4: CONIC SECTIONS ==================== -->
+    <div id="task4" class="card hidden">
+      <h2>J4: Conic Sections — Ellipse Eccentricity & Focal Properties</h2>
+      <div class="sdg-box">
+        <strong>Learning, Industry & SDG Relevance (SDG 7 & SDG 9):</strong> Reflective properties of ellipses, parabolas, and hyperbolas govern satellite dish focusing, concentrated solar thermal collectors, and planetary trajectories.
+      </div>
+      <div class="subcard">
+        <h3>Visualization J4: Conic $\frac{x^2}{A^2} + \frac{y^2}{B^2} = 1$ ($A = \max(a,b), B = \min(a,b)$)</h3>
+        <div id="readoutJ4" class="readout"></div>
+        <div id="plotJ4" class="plot-box" onclick="trackMove(4)"></div>
+        <div class="step-grid">
+          <div><label>1. Eccentricity $e = \sqrt{1 - B^2/A^2}$ (2 decimals):</label><input type="number" step="any" id="j4_ecc" /></div>
+          <div><label>2. Latus rectum length $\frac{2B^2}{A}$ (2 decimals):</label><input type="number" step="any" id="j4_lr" /></div>
+        </div>
+      </div>
+      <div class="subcard" style="border-left-color:#7c3aed;">
+        <h3>JEE Guided Derivation Worksheet (J4)</h3>
+        <div class="derivation-line">
+          For any point $P$ on the ellipse, sum of focal distances $PS + PS' = 2A =$ <input type="number" class="blank-box" id="j4_b1" />, and distance between the two foci is $2Ae =$ <input type="number" step="any" class="blank-box" id="j4_b2" />.
+        </div>
+      </div>
+      <button onclick="submitTask(4)">Verify & Submit J4</button>
+      <div id="statusT4" class="status-msg"></div>
+    </div>
+
+    <!-- ==================== J5: DIFFERENTIAL CALCULUS ==================== -->
+    <div id="task5" class="card hidden">
+      <h2>J5: Lagrange Mean Value Theorem (LMVT) & Local Extrema</h2>
+      <div class="sdg-box">
+        <strong>Learning, Industry & SDG Relevance (SDG 9 & SDG 12):</strong> Setting $f'(x) = 0$ and bounding slopes via LMVT form the foundation of gradient descent in AI and material-saving engineering design.
+      </div>
+      <div class="subcard">
+        <h3>Visualization J5: Cubic $f(x) = x^3 - 3ax^2 + b$ & Tangent Slope</h3>
+        <label>Slide Tangent Point $x_0$: <span id="j5_x_lbl">1.0</span></label>
+        <input type="range" id="j5_x" min="-2" max="15" step="0.2" value="1.0" oninput="trackMove(5); drawJ5();" />
+        <div id="readoutJ5" class="readout"></div>
+        <div id="plotJ5" class="plot-box"></div>
+        <div class="step-grid">
+          <div><label>1. Local maximum occurs at $x = 0$, giving $f(0) = b$:</label><input type="number" id="j5_max" /></div>
+          <div><label>2. Local minimum occurs at $x = 2a$:</label><input type="number" id="j5_xmin" /></div>
+        </div>
+      </div>
+      <div class="subcard" style="border-left-color:#7c3aed;">
+        <h3>JEE Guided Derivation Worksheet (J5)</h3>
+        <div class="derivation-line">
+          Setting $f'(x) = 3x^2 - 6ax = 0$ gives critical points $x = 0$ and $x = 2a =$ <input type="number" class="blank-box" id="j5_b1" />. Inflection point where $f''(x) = 0$ is $x = a =$ <input type="number" class="blank-box" id="j5_b2" />.
+        </div>
+      </div>
+      <button onclick="submitTask(5)">Verify & Submit J5</button>
+      <div id="statusT5" class="status-msg"></div>
+    </div>
+
+    <!-- ==================== J6: INTEGRAL CALCULUS & ODEs ==================== -->
+    <div id="task6" class="card hidden">
+      <h2>J6: Definite Integrals (King’s Property), Area & Differential Equations</h2>
+      <div class="sdg-box">
+        <strong>Learning, Industry & SDG Relevance (SDG 13):</strong> Accumulating area under rate curves and solving first-order ODEs model atmospheric carbon accumulation and reservoir storage dynamics.
+      </div>
+      <div class="subcard">
+        <h3>Visualization J6: Bounded Area Between $y = ax$ and $y = x^2$</h3>
+        <div id="readoutJ6" class="readout"></div>
+        <div id="plotJ6" class="plot-box" onclick="trackMove(6)"></div>
+        <div class="step-grid">
+          <div><label>1. Intersection $x$-coordinate ($x > 0$):</label><input type="number" id="j6_xint" /></div>
+          <div><label>2. Enclosed area $\int_0^a (ax - x^2)\,dx = \frac{a^3}{6}$ (2 decimals):</label><input type="number" step="any" id="j6_area" /></div>
+        </div>
+      </div>
+      <div class="subcard" style="border-left-color:#7c3aed;">
+        <h3>JEE Guided Derivation Worksheet (J6)</h3>
+        <div class="derivation-line">
+          By King's Property $\int_0^{\pi/2} \frac{\sin^b x}{\sin^b x + \cos^b x}\,dx = \frac{\pi}{4} \approx$ <input type="number" step="any" class="blank-box" id="j6_b1" />. Integrating factor of $\frac{dy}{dx} + ay = b$ is $e^{ax}$ with rate $a =$ <input type="number" class="blank-box" id="j6_b2" />.
+        </div>
+      </div>
+      <button onclick="submitTask(6)">Verify & Submit J6</button>
+      <div id="statusT6" class="status-msg"></div>
+    </div>
+
+    <!-- ==================== J7: VECTORS & 3D GEOMETRY ==================== -->
+    <div id="task7" class="card hidden">
+      <h2>J7: Vectors, Cross Product Area & 3D Plane Projections</h2>
+      <div class="sdg-box">
+        <strong>Learning, Industry & SDG Relevance (SDG 9 & SDG 11):</strong> Cross-product normals and 3D point-to-plane distances power LiDAR obstacle detection in autonomous vehicles and robotic kinematics.
+      </div>
+      <div class="subcard">
+        <h3>Visualization J7: Vector Cross Product & Parallelogram Span</h3>
+        <div id="readoutJ7" class="readout"></div>
+        <div id="plotJ7" class="plot-box" onclick="trackMove(7)"></div>
+        <div class="step-grid">
+          <div><label>1. Area of parallelogram $\|\vec{u} \times \vec{v}\| = a^2 + b^2$:</label><input type="number" id="j7_area" /></div>
+          <div><label>2. Distance of origin $(0,0,0)$ from plane $ax + by + \sqrt{2ab}\,z = (a+b)^2$:</label><input type="number" id="j7_dist" /></div>
+        </div>
+      </div>
+      <div class="subcard" style="border-left-color:#7c3aed;">
+        <h3>JEE Guided Derivation Worksheet (J7)</h3>
+        <div class="derivation-line">
+          For $\vec{u} = a\hat{i} + b\hat{j}$ and $\vec{v} = -b\hat{i} + a\hat{j}$, $\vec{u}\cdot\vec{v} =$ <input type="number" class="blank-box" id="j7_b1" /> and $\vec{u}\times\vec{v} = (a^2+b^2)\hat{k}$ with magnitude <input type="number" class="blank-box" id="j7_b2" />.
+        </div>
+      </div>
+      <button onclick="submitTask(7)">Verify & Submit J7</button>
+      <div id="statusT7" class="status-msg"></div>
+    </div>
+
+    <!-- ==================== J8: MATRICES & PROBABILITY ==================== -->
+    <div id="task8" class="card hidden">
+      <h2>J8: Determinants, Adjoint Properties & Binomial Probability</h2>
+      <div class="sdg-box">
+        <strong>Learning, Industry & SDG Relevance (SDG 3 & SDG 9):</strong> Binomial probability distributions and Bayesian updates calibrate medical diagnostic accuracy, while matrix determinants check linear system solvability.
+      </div>
+      <div class="subcard">
+        <h3>Visualization J8: Binomial Distribution $P(X = k) = \binom{a}{k} (0.5)^a$</h3>
+        <div id="readoutJ8" class="readout"></div>
+        <div id="plotJ8" class="plot-box" onclick="trackMove(8)"></div>
+        <div class="step-grid">
+          <div><label>1. Mean $\mu = n p = 0.5 a$:</label><input type="number" step="any" id="j8_mean" /></div>
+          <div><label>2. Variance $\sigma^2 = n p q = 0.25 a$:</label><input type="number" step="any" id="j8_var" /></div>
+        </div>
+      </div>
+      <div class="subcard" style="border-left-color:#7c3aed;">
+        <h3>JEE Guided Derivation Worksheet (J8)</h3>
+        <div class="derivation-line">
+          For $2\times 2$ matrix $M = \begin{bmatrix} a & b \\ 0 & b \end{bmatrix}$, $\det(M) = ab =$ <input type="number" class="blank-box" id="j8_b1" />, and $\det(\text{adj } M) = (\det M)^{2-1} =$ <input type="number" class="blank-box" id="j8_b2" />.
+        </div>
+      </div>
+      <button onclick="submitTask(8)">Verify & Submit J8</button>
+      <div id="statusT8" class="status-msg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUBMISSION_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbySjOaMeAKFUncETdEwhhhfm8tzk8HktkCIKiymWrulEA-SCmzZSVOlTiCbpElC2XBtCQ/exec";
+let currentUser = null;
+let activeTask = 1;
+const sessionStart = Date.now();
+const telemetry = {};
+for (let i = 1; i <= 8; i++) telemetry[i] = { start: Date.now(), moves: 0, keys: 0 };
+
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && ["c", "v", "x", "a", "u", "s"].includes(e.key.toLowerCase())) {
+    e.preventDefault();
+    return false;
+  }
+  if (e.target.tagName === "INPUT") telemetry[activeTask].keys++;
+});
+
+function trackMove(t) { telemetry[t].moves++; }
+
+function parseJwt(token) {
+  const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  return JSON.parse(decodeURIComponent(atob(b64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+}
+
+function getParamsRegDOB(reg, dobStr) {
+  const digits = reg.replace(/\D/g, "");
+  const regLast3 = parseInt(digits.slice(-3).padStart(3, "0"), 10);
+  const dobParts = dobStr.split("-");
+  const a = ((regLast3 + parseInt(dobParts[2], 10)) % 11) + 3;
+  let b   = ((regLast3 * 3 + parseInt(dobParts[1], 10)) % 10) + 3;
+  if (a === b) b += 1;
+  return { a, b };
+}
+
+function countFilledBoxes() {
+  const inputs = document.querySelectorAll(`#task${activeTask} input[type="text"], #task${activeTask} input[type="number"]`);
+  let filled = 0;
+  inputs.forEach(inp => { if (inp.value.trim() !== "") filled++; });
+  return `${filled}/${inputs.length}`;
+}
+
+async function sendHeartbeat(stateLabel = "ACTIVE") {
+  if (!currentUser) return;
+  const mins = Math.max(1, Math.round((Date.now() - sessionStart) / 60000));
+  const names = {
+    1: "J1: Complex", 2: "J2: Quadratics", 3: "J3: Trig & Inv", 4: "J4: Conics",
+    5: "J5: Diff Calc", 6: "J6: Int & ODE", 7: "J7: Vectors 3D", 8: "J8: Prob & Mat"
+  };
+  const payload = {
+    reg: currentUser.reg, name: currentUser.name, chapter: names[activeTask],
+    minutes: mins, moves: telemetry[activeTask].moves, filled: countFilledBoxes(),
+    state: stateLabel, updatedAt: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+  };
+  try {
+    await fetch(SUBMISSION_BRIDGE_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        files: [{ path: `live_status/${currentUser.reg}.json`, content: toBase64Unicode(JSON.stringify(payload)), message: `Heartbeat: ${currentUser.reg}` }]
+      })
+    });
+  } catch (e) {}
+}
+
+setInterval(() => sendHeartbeat("WORKING"), 45000);
+
+function handleGoogleLogin(response) {
+  const reg = document.getElementById("regInput").value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const dob = document.getElementById("dobInput").value;
+  const err = document.getElementById("loginError");
+  if (reg.length < 4 || !/\d{3}$/.test(reg) || !dob) {
+    err.textContent = "Enter your Roll/Register Number (ending in 3 digits) and Date of Birth BEFORE signing in.";
+    return;
+  }
+  err.textContent = "";
+  const payload = parseJwt(response.credential);
+  const name = payload.name.toUpperCase().replace(/[^A-Z ]/g, "").trim();
+  const { a, b } = getParamsRegDOB(reg, dob);
+  currentUser = { reg, dob, email: payload.email.toLowerCase(), name, a, b, folder: `${reg}_${name.replace(/ /g, "_")}` };
+
+  document.getElementById("dispName").textContent = name;
+  document.getElementById("dispReg").textContent = reg;
+  document.getElementById("dispDob").textContent = dob;
+
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("studentHeader").classList.remove("hidden");
+  document.getElementById("workspace").classList.remove("hidden");
+
+  drawJ1(); drawJ2(); drawJ3(); drawJ4();
+  drawJ5(); drawJ6(); drawJ7(); drawJ8();
+  sendHeartbeat("LOGGED_IN");
+}
+
+function showTask(num) {
+  activeTask = num;
+  for (let i = 1; i <= 8; i++) {
+    document.getElementById(`task${i}`).classList.toggle("hidden", i !== num);
+    document.querySelectorAll(".tab-btn")[i - 1].classList.toggle("active", i === num);
+  }
+  window.dispatchEvent(new Event("resize"));
+  sendHeartbeat("SWITCHED_TASK");
+}
+
+function verifySeed() {
+  const { a, b } = currentUser;
+  const ua = parseInt(document.getElementById("seed_a").value, 10);
+  const ub = parseInt(document.getElementById("seed_b").value, 10);
+  const msg = document.getElementById("seedMsg");
+  if (ua === a && ub === b) {
+    msg.style.color = "#16a34a";
+    msg.textContent = `✅ Verified! Your Roll No + DOB parameters are a = ${a}, b = ${b}. Use them across J1–J8!`;
+  } else {
+    msg.style.color = "#d97706";
+    msg.textContent = "🔒 Hover on the blue vector tip z1 = a + ib in the Argand Plane below.";
+  }
+}
+
+function drawJ1() {
+  const { a, b } = currentUser;
+  const th = parseFloat(document.getElementById("j1_th").value);
+  document.getElementById("j1_th_lbl").textContent = th.toFixed(2);
+  const rx = a * Math.cos(th) - b * Math.sin(th);
+  const ry = a * Math.sin(th) + b * Math.cos(th);
+  const mod = Math.hypot(a, b);
+  document.getElementById("readoutJ1").textContent = `|z1| = |z2| = ${mod.toFixed(3)} | Rotated z2 = (${rx.toFixed(2)}, ${ry.toFixed(2)})`;
+  Plotly.newPlot("plotJ1", [
+    { x: [0, a], y: [0, b], name: "z1 = a + ib", mode: "lines+markers", line: { color: "#1d4ed8", width: 3 } },
+    { x: [0, rx], y: [0, ry], name: "z2 = z1·e^(iθ)", mode: "lines+markers", line: { color: "#ea580c", width: 3 } }
+  ], { margin: { t: 10, b: 25, l: 30, r: 10 }, yaxis: { scaleanchor: "x" } });
+}
+
+function drawJ2() {
+  const { a, b } = currentUser;
+  const x0 = parseFloat(document.getElementById("j2_x").value);
+  document.getElementById("j2_x_lbl").textContent = x0.toFixed(2);
+  const xs = Array.from({length: 80}, (_, i) => 0.25 + (i/79)*3.75);
+  const y0 = a*x0 + b/x0;
+  document.getElementById("readoutJ2").textContent = `At x = ${x0.toFixed(2)} => f(x) = ${y0.toFixed(3)}`;
+  Plotly.newPlot("plotJ2", [
+    { x: xs, y: xs.map(x => a*x + b/x), name: "f(x) = ax + b/x", line: { color: "#1d4ed8", width: 2.5 } },
+    { x: [x0], y: [y0], name: "Probe Point", mode: "markers", marker: { color: "#ea580c", size: 10 } }
+  ], { margin: { t: 10, b: 25, l: 35, r: 10 } });
+}
+
+function drawJ3() {
+  const { a, b } = currentUser;
+  const xs = Array.from({length: 120}, (_, i) => (i/119)*2*Math.PI);
+  document.getElementById("readoutJ3").textContent = `Resultant Wave y(x) = a cos(x) + b sin(x)`;
+  Plotly.newPlot("plotJ3", [
+    { x: xs, y: xs.map(x => a*Math.cos(x) + b*Math.sin(x)), name: "a cos x + b sin x", line: { color: "#ea580c", width: 2.5 } }
+  ], { margin: { t: 10, b: 25, l: 35, r: 10 } });
+}
+
+function drawJ4() {
+  const { a, b } = currentUser;
+  const A = Math.max(a, b), B = Math.min(a, b);
+  const t = Array.from({length: 150}, (_, i) => (i/149)*2*Math.PI);
+  const e = Math.sqrt(1 - (B*B)/(A*A));
+  document.getElementById("readoutJ4").textContent = `Semi-axes A=${A}, B=${B} | Foci at (±${(A*e).toFixed(2)}, 0)`;
+  Plotly.newPlot("plotJ4", [
+    { x: t.map(v => A*Math.cos(v)), y: t.map(v => B*Math.sin(v)), name: "Ellipse", line: { color: "#1d4ed8", width: 2.5 } },
+    { x: [-A*e, A*e], y: [0, 0], name: "Foci", mode: "markers", marker: { color: "#dc2626", size: 9 } }
+  ], { margin: { t: 10, b: 25, l: 30, r: 10 }, yaxis: { scaleanchor: "x" } });
+}
+
+function drawJ5() {
+  const { a, b } = currentUser;
+  const x0 = parseFloat(document.getElementById("j5_x").value);
+  document.getElementById("j5_x_lbl").textContent = x0.toFixed(1);
+  const xs = Array.from({length: 100}, (_, i) => -1 + (i/99)*(2*a + 3));
+  const y0 = x0**3 - 3*a*x0*x0 + b;
+  const slope = 3*x0*x0 - 6*a*x0;
+  document.getElementById("readoutJ5").textContent = `At x0=${x0.toFixed(1)} => f(x0)=${y0.toFixed(1)} | Tangent Slope f'(x0)=${slope.toFixed(2)}`;
+  Plotly.newPlot("plotJ5", [
+    { x: xs, y: xs.map(x => x**3 - 3*a*x*x + b), name: "f(x)", line: { color: "#1d4ed8", width: 2.5 } },
+    { x: [x0 - 1.5, x0 + 1.5], y: [y0 - 1.5*slope, y0 + 1.5*slope], name: "Tangent", line: { color: "#ea580c", dash: "dash", width: 2 } }
+  ], { margin: { t: 10, b: 25, l: 35, r: 10 } });
+}
+
+function drawJ6() {
+  const { a } = currentUser;
+  const xs = Array.from({length: 80}, (_, i) => (i/79)*(a + 1));
+  document.getElementById("readoutJ6").textContent = `Curves intersect at x = 0 and x = a`;
+  Plotly.newPlot("plotJ6", [
+    { x: xs, y: xs.map(x => a*x), name: "y = ax", line: { color: "#1d4ed8", width: 2.5 } },
+    { x: xs, y: xs.map(x => x*x), name: "y = x²", fill: "tonexty", line: { color: "#16a34a", width: 2.5 } }
+  ], { margin: { t: 10, b: 25, l: 35, r: 10 } });
+}
+
+function drawJ7() {
+  const { a, b } = currentUser;
+  document.getElementById("readoutJ7").textContent = `Parallelogram spanned by u=(a,b) and v=(-b,a)`;
+  Plotly.newPlot("plotJ7", [
+    { x: [0, a, a - b, -b, 0], y: [0, b, a + b, a, 0], fill: "toself", name: "Span Parallelogram", line: { color: "#7c3aed" } }
+  ], { margin: { t: 10, b: 25, l: 30, r: 10 }, yaxis: { scaleanchor: "x" } });
+}
+
+function drawJ8() {
+  const { a } = currentUser;
+  const ks = Array.from({length: a + 1}, (_, k) => k);
+  const fact = n => (n <= 1 ? 1 : n * fact(n - 1));
+  const probs = ks.map(k => (fact(a) / (fact(k) * fact(a - k))) * Math.pow(0.5, a));
+  document.getElementById("readoutJ8").textContent = `Binomial B(n = a, p = 0.5)`;
+  Plotly.newPlot("plotJ8", [
+    { x: ks, y: probs, type: "bar", name: "P(X = k)", marker: { color: "#ea580c" } }
+  ], { margin: { t: 10, b: 25, l: 35, r: 10 } });
+}
+
+function toBase64Unicode(str) { return btoa(unescape(encodeURIComponent(str))); }
+
+async function submitTask(tNum) {
+  const statusEl = document.getElementById(`statusT${tNum}`);
+  const { a, b } = currentUser;
+  let score = 0, summary = "";
+
+  if (tNum === 1) {
+    if (parseInt(document.getElementById("seed_a").value) === a && parseInt(document.getElementById("seed_b").value) === b) score += 30;
+    if (parseInt(document.getElementById("j1_mod2").value) === a*a + b*b) score += 30;
+    if (parseInt(document.getElementById("j1_b1").value) === -b && parseInt(document.getElementById("j1_b2").value) === a*a + b*b) score += 40;
+    summary = `z1=(${a},${b}), |z1|²=${document.getElementById("j1_mod2").value}, Obs=${document.getElementById("j1_obs").value}`;
+  } else if (tNum === 2) {
+    if (Math.abs(parseFloat(document.getElementById("j2_min").value) - 2*Math.sqrt(a*b)) < 0.15) score += 40;
+    if (parseInt(document.getElementById("j2_b1").value) === a+b && parseInt(document.getElementById("j2_b2").value) === a*b && parseInt(document.getElementById("j2_b3").value) === (a-b)**2) score += 60;
+    summary = `AM-GM Min=${document.getElementById("j2_min").value}`;
+  } else if (tNum === 3) {
+    if (Math.abs(parseFloat(document.getElementById("j3_amp").value) - Math.hypot(a, b)) < 0.15) score += 50;
+    if (parseInt(document.getElementById("j3_b1").value) === 90 && parseInt(document.getElementById("j3_b2").value) === 1) score += 50;
+    summary = `Amp=${document.getElementById("j3_amp").value}`;
+  } else if (tNum === 4) {
+    const A = Math.max(a, b), B = Math.min(a, b);
+    const e = Math.sqrt(1 - (B*B)/(A*A));
+    if (Math.abs(parseFloat(document.getElementById("j4_ecc").value) - e) < 0.05) score += 50;
+    if (parseInt(document.getElementById("j4_b1").value) === 2*A) score += 50;
+    summary = `Ecc=${document.getElementById("j4_ecc").value}, LR=${document.getElementById("j4_lr").value}`;
+  } else if (tNum === 5) {
+    if (parseInt(document.getElementById("j5_max").value) === b && parseInt(document.getElementById("j5_xmin").value) === 2*a) score += 50;
+    if (parseInt(document.getElementById("j5_b1").value) === 2*a && parseInt(document.getElementById("j5_b2").value) === a) score += 50;
+    summary = `LocalMax=${document.getElementById("j5_max").value}`;
+  } else if (tNum === 6) {
+    if (parseInt(document.getElementById("j6_xint").value) === a && Math.abs(parseFloat(document.getElementById("j6_area").value) - (a**3)/6) < 0.2) score += 60;
+    if (parseInt(document.getElementById("j6_b2").value) === a) score += 40;
+    summary = `Area=${document.getElementById("j6_area").value}`;
+  } else if (tNum === 7) {
+    if (parseInt(document.getElementById("j7_area").value) === a*a + b*b && parseInt(document.getElementById("j7_dist").value) === a + b) score += 60;
+    if (parseInt(document.getElementById("j7_b1").value) === 0 && parseInt(document.getElementById("j7_b2").value) === a*a + b*b) score += 40;
+    summary = `ParaArea=${document.getElementById("j7_area").value}, Dist=${document.getElementById("j7_dist").value}`;
+  } else if (tNum === 8) {
+    if (Math.abs(parseFloat(document.getElementById("j8_mean").value) - 0.5*a) < 0.05 && Math.abs(parseFloat(document.getElementById("j8_var").value) - 0.25*a) < 0.05) score += 50;
+    if (parseInt(document.getElementById("j8_b1").value) === a*b && parseInt(document.getElementById("j8_b2").value) === a*b) score += 50;
+    summary = `Mean=${document.getElementById("j8_mean").value}, det(M)=${document.getElementById("j8_b1").value}`;
+  }
+
+  const elapsed = Math.round((Date.now() - telemetry[tNum].start) / 1000);
+  const flag = (telemetry[tNum].moves >= 1 || telemetry[tNum].keys >= 4) ? "✅ VERIFIED HANDS-ON" : "⚠️ LOW INTERACTION";
+  statusEl.style.color = "#0f172a";
+  statusEl.textContent = `Saving JEE Module J${tNum} to repository...`;
+
+  try {
+    const md = `# IIT-JEE Module J${tNum} Report — ${currentUser.name} (${currentUser.reg})\n* **DOB:** ${currentUser.dob} | **Seed:** a=${a}, b=${b}\n* **Score:** **${score}/100** | **Audit:** ${flag} (Moves: ${telemetry[tNum].moves}, Time: ${elapsed}s)\n* **Summary:** ${summary}\n`;
+    const img = await Plotly.toImage(`plotJ${tNum}`, { format: "png", width: 800, height: 550 });
+    const res = await fetch(SUBMISSION_BRIDGE_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        files: [
+          { path: `students/${currentUser.folder}/J${tNum}_Worked.md`, content: toBase64Unicode(md), message: `${currentUser.reg}: JEE J${tNum} (${score}/100)` },
+          { path: `students/${currentUser.folder}/J${tNum}_Visual.png`, content: img.split(",")[1], message: `${currentUser.reg}: JEE J${tNum} visual` }
+        ]
+      })
+    });
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.error);
+    statusEl.style.color = "#16a34a";
+    statusEl.textContent = `✅ JEE Module J${tNum} Submitted! Score: ${score}/100 (${flag})`;
+    sendHeartbeat(`SUBMITTED_J${tNum}`);
+  } catch (e) {
+    statusEl.style.color = "#dc2626";
+    statusEl.textContent = "Error: " + e.message;
+  }
+}
+</script>
+</body>
+</html>
