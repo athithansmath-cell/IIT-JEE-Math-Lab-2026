@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live IIT-JEE Lab Radar (J1–J8)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #fff7ed; color: #1e293b; margin: 0; padding: 10px; }
+    .card { background: #fff; border-radius: 10px; padding: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+    h2 { margin: 0 0 8px; color: #9a3412; font-size: 18px; }
+    .controls { display: flex; gap: 8px; margin-bottom: 10px; }
+    input[type="text"] { flex: 1; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; }
+    button { background: #ea580c; color: #fff; border: none; padding: 7px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border-bottom: 1px solid #e2e8f0; padding: 8px 4px; text-align: left; }
+    th { background: #ffedd5; color: #9a3412; }
+    .badge { padding: 3px 6px; border-radius: 5px; font-weight: 700; font-size: 11px; display: inline-block; background: #fef9c3; color: #854d0e; }
+    .badge.done { background: #dcfce7; color: #166534; }
+    .pill { display: inline-block; padding: 1px 4px; border-radius: 3px; font-size: 10px; font-weight: 700; margin: 1px; background: #e2e8f0; color: #475569; }
+    .pill.ok { background: #16a34a; color: #fff; }
+    a { color: #ea580c; font-weight: 700; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Live IIT-JEE Aspirant Radar (<span id="activeCount">0</span> Active)</h2>
+    <div class="controls">
+      <input type="text" id="searchBox" placeholder="Filter by Roll No or Name..." oninput="renderTable()" />
+      <button onclick="loadRadar()">Refresh</button>
+    </div>
+    <table>
+      <thead><tr><th>Aspirant</th><th>Current Module</th><th>Time</th><th>Completed Modules (J1–J8)</th><th>Folder</th></tr></thead>
+      <tbody id="radarBody"><tr><td colspan="5">Loading live status...</td></tr></tbody>
+    </table>
+  </div>
+
+<script>
+const OWNER = "athithansmath-cell", REPO = "IIT-JEE-Math-Lab-2026";
+const RADAR_URL = "https://script.google.com/macros/s/AKfycbySjOaMeAKFUncETdEwhhhfm8tzk8HktkCIKiymWrulEA-SCmzZSVOlTiCbpElC2XBtCQ/exec?action=radar";
+let cached = [];
+
+async function loadRadar() {
+  try {
+    const res = await fetch(`${RADAR_URL}&t=${Date.now()}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+
+    const subMap = {};
+    (data.subFiles || []).forEach(p => {
+      const m = p.match(/^students\/([^_/]+)_[^/]+\/J([1-8])_Worked\.md$/);
+      if (m) {
+        if (!subMap[m[1]]) subMap[m[1]] = {};
+        subMap[m[1]][m[2]] = true;
+      }
+    });
+
+    cached = (data.students || []).map(s => ({ ...s, subs: subMap[s.reg] || {} })).sort((a, b) => a.reg.localeCompare(b.reg));
+    document.getElementById("activeCount").textContent = cached.length;
+    renderTable();
+  } catch (e) {
+    document.getElementById("radarBody").innerHTML = `<tr><td colspan="5">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function renderTable() {
+  const q = document.getElementById("searchBox").value.trim().toUpperCase();
+  const list = q ? cached.filter(s => s.reg.includes(q) || s.name.includes(q)) : cached;
+  document.getElementById("radarBody").innerHTML = list.length ? list.map(s => {
+    const pills = [1,2,3,4,5,6,7,8].map(n => `<span class="pill ${s.subs[n] ? 'ok' : ''}">J${n}</span>`).join("");
+    const folder = `${s.reg}_${s.name.replace(/ /g, "_")}`;
+    return `<tr>
+      <td><strong>${s.reg.slice(-4)}</strong><br><small>${s.name.split(" ")[0]}</small></td>
+      <td><span class="badge ${s.state?.startsWith('SUBMITTED') ? 'done' : ''}">${s.chapter}</span><br><small>${s.filled} @ ${s.updatedAt}</small></td>
+      <td><strong>${s.minutes}m</strong></td>
+      <td>${pills}</td>
+      <td><a href="https://github.com/${OWNER}/${REPO}/tree/main/students/${folder}" target="_blank">View</a></td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="5">No active aspirants yet.</td></tr>`;
+}
+loadRadar();
+setInterval(loadRadar, 25000);
+</script>
+</body>
+</html>
